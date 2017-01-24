@@ -22,8 +22,10 @@ int main()
 	for(;;)
 	{
 		Mat frame;
+		Mat edges;
 		cap >> frame;
-		imshow("camera", frame);
+		Canny(frame, edges, 10, 100);
+		imshow("camera", edges);
 		int key = waitKey(30);
 		if (key != 255)
 		{

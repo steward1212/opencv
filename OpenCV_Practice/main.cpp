@@ -9,6 +9,7 @@ using namespace cv;
 int slider_value;
 Mat frameA;
 Mat frameB;
+Mat videoFrame;
 
 void on_trackbar(int, void*)
 {
@@ -18,21 +19,21 @@ void on_trackbar(int, void*)
 	Mat out;
 	Mat in[] = { frameB, frameB, frameB };
 	merge(in, 3, out);
-
 	addWeighted(frameA, beta, out, alpha, 0.0, dst);
-	imshow("camera", dst);
+	Mat ROI = videoFrame(Rect(0, 0, dst.cols, dst.rows));
+	addWeighted(ROI, 0, dst, 1, 0, ROI);
+	imshow("camera", videoFrame);
 }
 
 int main()
 {
-	/*Mat img = imread("penggan.jpg");
-	Mat resized_img;
-	resize(img, resized_img, Size(img.cols / 8, img.rows / 8));
-	imshow("Hello World!", resized_img);
-	waitKey();*/
 	VideoCapture cap(0);
+	VideoCapture video("1.MTS");
 
 	if (!cap.isOpened())
+		return -1;
+
+	if (!video.isOpened())
 		return -1;
 
 	namedWindow("camera", CV_WINDOW_KEEPRATIO);
@@ -40,19 +41,24 @@ int main()
 	{
 		Mat frame;
 		Mat edges;
+		video >> videoFrame;
+		if (videoFrame.empty())
+		{
+			break;
+		}
 		cap >> frame;
 		Canny(frame, edges, 100, 300);
 		frameA = frame.clone();
 		frameB = edges.clone();
 		createTrackbar("Ratio", "camera", &slider_value, 100, on_trackbar);
 		on_trackbar(slider_value, 0);
-		//imshow("camera", frameA);
 		int key = waitKey(30);
 		if (key != 255)
 		{
 			break;
 		}
 	}
+
 	system("pause");
 	return 0;
 }
